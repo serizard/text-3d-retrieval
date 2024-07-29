@@ -2,6 +2,7 @@ from utils.refine import TextRefiner
 import argparse
 from configparser import ConfigParser
 from utils.misc import make_default_config, load_config, dump_config
+from download_dataset import download_modelnet40
  
 
 def process_input(user_input):
@@ -18,22 +19,26 @@ def retrieve_3d(text_feature, k=5):
     by 세민
     '''
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process user input')
-    parser.add_argument('--access_token', type=str, help='Hugging Face access token', required=True)
+    parser.add_argument('--access_token', type=str, help='Hugging Face access token', required=False)
     parser.add_argument('--init_config', type=bool, help='Initialize default configuration')
+    parser.add_argument('--download_dir', type=str, default=None, help='Directory to download 3D objects')
     args = parser.parse_args()
 
     if args.init_config:
         make_default_config()
     
     config = load_config()
+    dataset_path = download_modelnet40(args)
 
-    refiner = TextRefiner(access_token=args.access_token)
+    
 
-    user_input = input("Enter a user description of shape to retrieve: ")
-    structured_text = refiner.refine(user_input)
+    
 
-    text_feature = process_input(structured_text)
+    # refiner = TextRefiner(access_token=args.access_token)
+
+    # user_input = input("Enter a user description of shape to retrieve: ")
+    # structured_text = refiner.refine(user_input)
+
+    # text_feature = process_input(structured_text)

@@ -36,6 +36,8 @@ if __name__ == '__main__':
 
     
 
+    
+
     # refiner = TextRefiner(access_token=args.access_token)
 
     # user_input = input("Enter a user description of shape to retrieve: ")

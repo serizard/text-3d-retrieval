@@ -49,6 +49,7 @@ def convert_off_to_npy(off_file_path, npy_file_path):
     data = {'vertices': vertices, 'faces': faces}
     np.save(npy_file_path, data, allow_pickle=True)
     print(f"Converted {off_file_path} to {npy_file_path}")
+    print('hieqreqreqwr')
 
 # 파일 선택 및 변환 실행 함수!
 def select_and_convert_file():

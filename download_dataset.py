@@ -1,23 +1,33 @@
 import os
 import urllib.request
 import zipfile
+import shutil
+
+
+def move_off_files(src_dir, dest_dir):
+    # 모든 하위 디렉토리를 포함하여 .off 파일 찾기
+    for root, dirs, files in os.walk(src_dir):
+        for file in files:
+            if file.endswith('.off'):
+                src_file_path = os.path.join(root, file)
+                dest_file_path = os.path.join(dest_dir, file)
+                
+                # 파일을 대상 디렉토리로 이동
+                shutil.move(src_file_path, dest_file_path)
+                print(f"Moved: {src_file_path} -> {dest_file_path}")
+
 
 
 def download_modelnet40(args):
-    data_dir = './data'
-    if args.download_dir:
-        data_dir = args.download_dir
-        
+
+    data_dir = args.download_dir
+    
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     
     url = 'http://modelnet.cs.princeton.edu/ModelNet40.zip'
     zip_path = os.path.join(data_dir, 'ModelNet40.zip')
     extract_path = os.path.join(data_dir, 'ModelNet40')
-
-    if os.path.exists(extract_path):
-        print("ModelNet40 dataset already downloaded and extracted.")
-        return data_dir
 
     print("Downloading ModelNet40 dataset...")
 
@@ -37,6 +47,9 @@ def download_modelnet40(args):
     try:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(data_dir)
+
+        source_directory = os.path.join(data_dir, 'ModelNet40')
+        move_off_files(source_directory, data_dir)
         print("Extraction complete.")
     except Exception as e:
         raise Exception(f"Failed to extract ModelNet40 dataset: {e}")

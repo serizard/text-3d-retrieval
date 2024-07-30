@@ -1,9 +1,18 @@
 import open_clip
+import torch
+
 
 
 print("loading OpenCLIP model...")
-open_clip_model, _, open_clip_preprocess = open_clip.create_model_and_transforms('ViT-bigG-14', pretrained='laion2b_s39b_b160k', cache_dir="/kaiming-fast-vol/workspace/open_clip_model/")
-open_clip_model.cuda().eval()
+open_clip_model, _, open_clip_preprocess = open_clip.create_model_and_transforms('ViT-bigG-14', 
+                                                                                 pretrained='laion2b_s39b_b160k', 
+                                                                                 cache_dir="/kaiming-fast-vol/workspace/open_clip_model/")
+if torch.cuda.is_available():
+    open_clip_model = open_clip_model.cuda()
+    open_clip_model = torch.nn.DataParallel(open_clip_model)
+    open_clip_model = open_clip_model.half()
+
+open_clip_model.eval()
 
 print("extracting 3D shape feature...")
 xyz, feat = load_ply("demo/pc.ply")

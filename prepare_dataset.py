@@ -115,11 +115,10 @@ def preprocess_modelnet40(model, data_dir, num_points, y_up=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Download and preprocess ModelNet40 dataset')
     parser.add_argument('--download_dir', type=str, default='./data', help='Directory to download ModelNet40 dataset')
-    parser.add_argument('--num_workers', type=int, default=-1, help='Number of workers for parallel processing')
     args = parser.parse_args()
 
     config = load_config()
 
     model = load_model(config)
     download_modelnet40(args.download_dir)
-    preprocess_modelnet40(model, args.download_dir, config.num_points, args.num_workers)
+    preprocess_modelnet40(model, args.download_dir, config.num_points)

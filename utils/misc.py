@@ -11,6 +11,7 @@ def make_default_config():
         'embedding_channel': 1024,
         'voxel_size': 0.02
     }
+    config['data_dir'] = './data'
 
     with open('configs/config.ini', 'w') as configfile:
         config.write(configfile)

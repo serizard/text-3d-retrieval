@@ -15,13 +15,16 @@ This project retrieves shapes from ModelNet40 based on user text input and visua
 | Shape Encoder            | [PointBERT] (https://github.com/Colin97/OpenShape_code)            |
 
 
-### Download dataset
-'''
+
+
+## Download dataset
+```
 python prepare_dataset.py --download-dir {directory path to download dataset}
-'''
+```
 
 
-### Inference
+
+## Inference
 ```
 python main.py --access-token {your huggingface access token}
 ```

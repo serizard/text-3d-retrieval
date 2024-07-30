@@ -10,9 +10,9 @@ This project retrieves shapes from ModelNet40 based on user text input and visua
 
 | Model                    | Name                 |
 |--------------------------|----------------------|
-| Prompt Engineering Model | [llama-3 8B] (https://huggingface.co/meta-llama/Meta-Llama-3-8B)           |
-| Text Encoder             | [OpenCLIP ViT-bigG-14] (https://github.com/mlfoundations/open_clip) |
-| Shape Encoder            | [PointBERT] (https://github.com/Colin97/OpenShape_code)            |
+| Prompt Engineering Model | [llama-3 8B](https://huggingface.co/meta-llama/Meta-Llama-3-8B)           |
+| Text Encoder             | [OpenCLIP ViT-bigG-14](https://github.com/mlfoundations/open_clip) |
+| Shape Encoder            | [PointBERT](https://github.com/Colin97/OpenShape_code)            |
 
 
 

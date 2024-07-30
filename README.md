@@ -22,7 +22,7 @@ python prepare_dataset.py --download-dir {directory path to download dataset}
 
 
 ### Inference
-'''
+```
 python main.py --access-token {your huggingface access token}
-'''
+```
 

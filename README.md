@@ -2,7 +2,9 @@
 ---
 ![figure](https://github.com/user-attachments/assets/9fa9cd58-ef7c-4cc9-9c69-cdb0ed2bdbb1)
 
-Research project at AI·Robotics Institute, KIST
+
+
+Research project at **_AI·Robotics Institute, KIST_**
 
 This project retrieves shapes from ModelNet40 based on user text input and visualizes them. Users can input text in various languages, and the number of retrieved shapes (k) can be specified arbitrarily.
 

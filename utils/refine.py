@@ -13,20 +13,21 @@ class TextRefiner:
 
     def refine(self, user_input):
         prompt_template = f"""
-        I want you to transform the following user description into a structured text suitable for CLIP text input for a text-to-3D retrieval task.
+        I want you to transform the following user description into a structured text that contains a bunch of adjectives and rhetorics.
         If the user description is written in other languages than English, please translate it to English before refining.
+        You should only give a structured text itself only (No need to give additional information).
         
         User description: {user_input}
         
-        Structured description for CLIP input: 
+        Structured description of user input: 
         """
 
         output = self.text_generator(prompt_template, max_length=200, do_sample=True, temperature=0.7)
 
 
-        structured_text = output[0]['generated_text'].replace(prompt_template, "").strip()
+        refined_text = output[0]['generated_text'].replace(prompt_template, "").strip()
 
-        return structured_text
+        return refined_text
 
 if __name__ == "__main__":
     refiner = TextRefiner(access_token='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')

@@ -6,7 +6,7 @@
 
 Research project at **_AI·Robotics Institute, KIST_**
 
-This project retrieves shapes from ModelNet40 based on user text input and visualizes them. Users can input text in various languages, and the number of retrieved shapes (k) can be specified arbitrarily.
+This project aims to retrieve shapes from ModelNet40 based on user text input and visualizes them. Users can input text in various languages, and the number of retrieved shapes (k) can be specified arbitrarily.
 
 | Model                    | Name                 |
 |--------------------------|----------------------|

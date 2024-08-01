@@ -16,6 +16,7 @@ import torch
 import model.models as models
 import pickle
 from huggingface_hub import hf_hub_download
+from utils.misc import dump_config
 
 def move_off_files(src_dir, dest_dir):
     """Move .off files from the source directory to the destination directory."""
@@ -82,14 +83,18 @@ def load_model(config):
     model.load_state_dict(model_dict)
     return model
 
-def preprocess_modelnet40(model, data_dir, num_points, y_up=True):
+def preprocess_modelnet40(model, configs, y_up=True):
     """Convert all OFF files in the dataset to point cloud files and extract features."""
-    off_files = glob(osp.join(data_dir, 'meshes', '*.off'), recursive=True)
+    off_files = glob(osp.join(configs.data_dir, 'meshes', '*.off'), recursive=True)
+    off_files.sort()
     print(f"Number of .off files: {len(off_files)}")
 
     embedded_features = {}
+    os.makedirs('./modelnet_embed', exist_ok=True)
     for off_file in tqdm(off_files, desc='Converting the dataset type'):
-        pcd = to_pcd(off_file, num_points)
+        if configs.preprocessing_ckpt is not None and off_file < configs.preprocessing_ckpt:
+            continue
+        pcd = to_pcd(off_file, configs.num_points)
         xyz = np.asarray(pcd.points)
         rgb = np.asarray(pcd.colors)
         if y_up:
@@ -106,9 +111,8 @@ def preprocess_modelnet40(model, data_dir, num_points, y_up=True):
         shape_feature = model(xyz_tensor, features_tensor, device='cuda', quantization_size=config.model.voxel_size)
         embedded_features[off_file] = shape_feature.cpu().numpy()[0]
 
-    os.makedirs('./modelnet_embed', exist_ok=True)
-    with open(osp.join('./modelnet_embed/modelnet.pkl'), 'wb') as f:
-        pickle.dump(embedded_features, f)
+        with open('./modelnet_embed/modelnet.pkl', 'wb') as f:
+            pickle.dump(embedded_features, f)
 
     print("Preprocessing complete.")
 
@@ -121,4 +125,4 @@ if __name__ == "__main__":
 
     model = load_model(config)
     download_modelnet40(args.download_dir)
-    preprocess_modelnet40(model, args.download_dir, config.num_points)
+    preprocess_modelnet40(model, config)

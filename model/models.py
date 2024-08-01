@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 from einops import rearrange
 import torch.nn.functional as F
-from PointNet_utils import PointNetSetAbstraction
+from model.pointnetutils import PointNetSetAbstraction
 
 
 def make_model(config):

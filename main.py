@@ -10,6 +10,7 @@ import os.path as osp
 import shutil
 import matplotlib.pyplot as plt
 import trimesh
+import open3d as o3d
  
 @torch.no_grad()
 def process_input(user_input, open_clip_model, device):
@@ -44,14 +45,19 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
     img_paths = []
     for idx, _ in top_k:
         target_path = shape_ids[idx]
-        mesh = trimesh.load(target_path, file_type='off')
         result_save_path = osp.join('./results', f"{osp.basename(target_path).split('.')[0]}.png")
-        scene = mesh.scene()
-        png = scene.save_image(resolution=[800, 800], visible=True)
 
-        with open(result_save_path, 'wb') as f:
-            f.write(png)
-            
+        mesh = o3d.io.read_triangle_mesh(target_path)
+        mesh.compute_vertex_normals()
+        o3d.visualization.draw_geometries([mesh])
+        
+        # mesh = trimesh.load(target_path, file_type='off')
+        # scene = mesh.scene()
+        # png = scene.save_image(resolution=[400, 400], visible=True)
+
+        # with open(result_save_path, 'wb') as f:
+        #     f.write(png)
+
         img_paths.append(result_save_path)
 
     _, axes = plt.subplots(1, k, figsize=(15, 5))

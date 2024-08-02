@@ -1,5 +1,6 @@
 import json
 import os
+from types import SimpleNamespace
 
 DEFAULT_CONFIG = {
     'embed_dim': 1024,
@@ -7,7 +8,7 @@ DEFAULT_CONFIG = {
     'model': {
         'name': 'PointBERT',
         'in_channel': 6,
-        'out_channel': 1024,
+        'out_channel': 1280,
         'embedding_channel': 1280,
         'voxel_size': 0.02
     },
@@ -42,7 +43,7 @@ def make_default_config():
 def load_config():
     config_path = './utils/configs/config.json'
     with open(config_path, 'r') as fp:
-        config = json.load(fp)
+        config = json.load(fp, object_hook=lambda d: SimpleNamespace(**d))
     return config
 
 def dump_config(path, config):

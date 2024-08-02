@@ -2,3 +2,4 @@ data
 data/ModelNet40/
 data/ModelNet40.zip
 modelnet_embed
+clip_cache

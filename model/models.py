@@ -101,11 +101,13 @@ class PointPatchTransformer(nn.Module):
         self.patches = patches
         self.patch_dropout = patch_dropout
         self.sa = PointNetSetAbstraction(npoint=patches, radius=prad, nsample=nsamp, in_channel=in_dim + 3, mlp=[64, 64, sa_dim], group_all=False)
-        self.lift = nn.Sequential(
-            nn.Conv1d(sa_dim + 3, dim, 1),
-            nn.Lambda(lambda x: torch.permute(x, [0, 2, 1])),
-            nn.LayerNorm([dim])
-        )
+        self.conv = nn.Conv1d(sa_dim + 3, dim, 1)
+        self.norm = nn.LayerNorm([dim])
+        # self.lift = nn.Sequential(
+        #     nn.Conv1d(sa_dim + 3, dim, 1),
+        #     nn.Lambda(lambda x: torch.permute(x, [0, 2, 1])),
+        #     nn.LayerNorm([dim])
+        # )
         self.cls_token = nn.Parameter(torch.randn(dim))
         self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, 0.0, rel_pe)
 
@@ -115,7 +117,9 @@ class PointPatchTransformer(nn.Module):
             self.sa.npoint -= self.patch_dropout
         centroids, feature = self.sa(xyz, features)
 
-        x = self.lift(torch.cat([centroids, feature], dim=1))
+        x = self.conv(torch.cat([centroids, feature], dim=1))
+        x = torch.permute(x, [0, 2, 1])
+        x = self.norm(x)
 
         # Concat the cls_token to the batch
         cls_token = self.cls_token.unsqueeze(0).expand(x.shape[0], -1).unsqueeze(1)  # Expand for batch size
@@ -135,7 +139,7 @@ class ProjectedEncoder(nn.Module):
         self.pp_transformer = pp_transformer
         self.head = head 
 
-    def forward(self, xyz, feature, device, quantization_size):
+    def forward(self, xyz, feature, quantization_size):
         output = self.pp_transformer(xyz.transpose(-1,-2).contiguous(), 
                                      feature.transpose(-1,-2).contiguous())
         return self.head(output)

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from time import time
 import numpy as np
-import dgl.geometry
+# import dgl.geometry
 
 def timeit(tag, t):
     print("{}: {}s".format(tag, time() - t))
@@ -69,7 +69,7 @@ def farthest_point_sample(xyz, npoint):
     Return:
         centroids: sampled pointcloud index, [B, npoint]
     """
-    return dgl.geometry.farthest_point_sampler(xyz, npoint)
+    # return dgl.geometry.farthest_point_sampler(xyz, npoint)
     device = xyz.device
     B, N, C = xyz.shape
     centroids = torch.zeros(B, npoint, dtype=torch.long).to(device)
@@ -189,17 +189,17 @@ class PointNetSetAbstraction(nn.Module):
             new_xyz: sampled points position data, [B, C, S]
             new_points_concat: sample points feature data, [B, D', S]
         """
-        xyz = xyz.permute(0, 2, 1)
+        xyz = xyz.permute(0, 2, 1) # (1, 10000, 6)
         if points is not None:
-            points = points.permute(0, 2, 1)
+            points = points.permute(0, 2, 1) # (1, 10000, 6)
 
         if self.group_all:
             new_xyz, new_points = sample_and_group_all(xyz, points)
         else:
             new_xyz, new_points = sample_and_group(self.npoint, self.radius, self.nsample, xyz, points)
-        # new_xyz: sampled points position data, [B, npoint, C]
+        # new_xyz: sampled points position data, [B, npoint, C] (1, 384, 3)
         # new_points: sampled points data, [B, npoint, nsample, C+D]
-        new_points = new_points.permute(0, 3, 2, 1) # [B, C+D, nsample,npoint]
+        new_points = new_points.permute(0, 3, 2, 1) # [B, C+D, nsample,npoint] (1, 9, 64, 384)
         for i, conv in enumerate(self.mlp_convs):
             bn = self.mlp_bns[i]
             new_points =  F.relu(bn(conv(new_points)))

@@ -7,16 +7,24 @@ import torch
 import numpy as np
 import os
 import os.path as osp
-import open3d as o3d
 import shutil
 import matplotlib.pyplot as plt
+import trimesh
  
-def process_input(user_input):
+@torch.no_grad()
+def process_input(user_input, open_clip_model, device):
     with torch.no_grad():
-        text = open_clip_preprocess(user_input).cuda()
-        text_feature = open_clip_model.encode_text(text)
-        text_feature = text_feature.cpu().numpy()
-        return text_feature
+        text = open_clip.tokenizer.tokenize(user_input).to(device)
+        return open_clip_model.encode_text(text).cpu().numpy()
+
+
+def make_image(mesh, output_path):
+    scene = mesh.scene()
+    png = scene.save_image(resolution=[800, 800], visible=True)
+
+    with open(output_path, 'wb') as f:
+        f.write(png)
+
 
 def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
     '''
@@ -24,26 +32,27 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
     text_feature: (1, embed_dim)
     '''
 
+    os.makedirs('./results', exist_ok=True)
     shutil.rmtree('results', ignore_errors=True)
 
-    similarity = np.dot(shape_embeddings, text_feature.T) / (np.linalg.norm(shape_embeddings, axis=1) * np.linalg.norm(text_feature))
-    similarity = [(idx, sim_value) for idx, sim_value in enumerate(similarity.squeeze())]
-    similarity.sort(key=lambda x: x[1], reverse=True)
+    similarity = np.dot(shape_embeddings, text_feature.T) # (N, 1)
+    indexed_similarity = [(idx, sim_value) for idx, sim_value in enumerate(similarity.squeeze())]
+    indexed_similarity.sort(key=lambda x: x[1], reverse=True)
 
-    top_k = similarity[:k]
+    top_k = indexed_similarity[:k]
 
-    os.makedirs('./results', exist_ok=True)
-    vis = o3d.visualization.Visualizer()
     img_paths = []
     for idx, _ in top_k:
-        target_path = osp.join(config['data_dir'], shape_ids[idx])
-        pcd = o3d.io.read_point_cloud(target_path)
-        vis.add_geometry(pcd)
-        vis.update_renderer()
-        vis.capture_screen_image(osp.join('./results', f"{shape_ids[idx]}.png"))
-        img_paths.append(osp.join('./results', f"{shape_ids[idx]}.png"))
-        vis.clear_geometries()
-    vis.destroy_window()
+        target_path = shape_ids[idx]
+        mesh = trimesh.load(target_path, file_type='off')
+        result_save_path = osp.join('./results', f"{osp.basename(target_path).split('.')[0]}.png")
+        scene = mesh.scene()
+        png = scene.save_image(resolution=[800, 800], visible=True)
+
+        with open(result_save_path, 'wb') as f:
+            f.write(png)
+            
+        img_paths.append(result_save_path)
 
     _, axes = plt.subplots(1, k, figsize=(15, 5))
     for i, img_path in enumerate(img_paths):
@@ -67,22 +76,31 @@ if __name__ == '__main__':
     config = load_config()
 
     print("loading OpenCLIP model...")
-    open_clip_model, _, open_clip_preprocess = open_clip.create_model_and_transforms('ViT-bigG-14', pretrained='laion2b_s39b_b160k', cache_dir="/kaiming-fast-vol/workspace/open_clip_model/")
-    open_clip_model = open_clip_model.cuda().eval()
+    os.makedirs('./clip_cache', exist_ok=True)
+
+    open_clip_model, _, open_clip_preprocess = open_clip.create_model_and_transforms('ViT-bigG-14', pretrained='laion2b_s39b_b160k', cache_dir='./clip_cache')
+    try:
+        open_clip_model = open_clip_model.cuda().eval()
+        device = 'cuda'
+    except torch.cuda.OutOfMemoryError:
+        print("CUDA out of memory. Running on CPU.")
+        open_clip_model = open_clip_model.cpu().eval()
+        device = 'cpu'
 
     print('loading Shape Embeddings...')
     
     with open('./modelnet_embed/modelnet.pkl', 'rb') as f:
         shape_embeddings = pickle.load(f)
-        shape_ids = np.array(shape_embeddings.keys())
-        embeddings = np.array(shape_embeddings.values())
+        shape_ids = np.array(list(shape_embeddings.keys())) # (N,)
+        embeddings = np.array(list(shape_embeddings.values())) # (N, embed_dim)
     
-    refiner = TextRefiner(access_token=args.access_token)
+    # refiner = TextRefiner(access_token=args.access_token)
 
     while True:
         user_input = input("Enter a user description of shape to retrieve: ")
         k = int(input("Enter the number of shapes to retrieve: "))
-        refined_text = refiner.refine(user_input)
+        # refined_text = refiner.refine(user_input)
+        refined_text = [user_input]
 
-        text_feature = process_input(refined_text)
-        retrieve_3d(text_feature, shape_embeddings, shape_ids, k=k)
+        text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
+        retrieve_3d(text_feature, embeddings, shape_ids, k=k)

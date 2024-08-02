@@ -4,7 +4,7 @@
     "model": {
         "name": "PointBERT",
         "in_channel": 6,
-        "out_channel": 1024,
+        "out_channel": 1280,
         "embedding_channel": 1280,
         "voxel_size": 0.02
     },

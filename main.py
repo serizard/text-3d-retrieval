@@ -9,8 +9,9 @@ import os
 import os.path as osp
 import shutil
 import matplotlib.pyplot as plt
-import trimesh
+from PIL import Image
 import open3d as o3d
+from utils.renderer import Renderer
  
 @torch.no_grad()
 def process_input(user_input, open_clip_model, device):
@@ -19,22 +20,14 @@ def process_input(user_input, open_clip_model, device):
         return open_clip_model.encode_text(text).cpu().numpy()
 
 
-def make_image(mesh, output_path):
-    scene = mesh.scene()
-    png = scene.save_image(resolution=[800, 800], visible=True)
-
-    with open(output_path, 'wb') as f:
-        f.write(png)
-
-
-def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
+def retrieve_3d(text_feature, shape_embeddings, shape_ids, config, k=5):
     '''
     shape_embeddings: (N, embed_dim)
     text_feature: (1, embed_dim)
     '''
 
-    os.makedirs('./results', exist_ok=True)
     shutil.rmtree('results', ignore_errors=True)
+    os.makedirs('./results', exist_ok=True)
 
     similarity = np.dot(shape_embeddings, text_feature.T) # (N, 1)
     indexed_similarity = [(idx, sim_value) for idx, sim_value in enumerate(similarity.squeeze())]
@@ -47,18 +40,15 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
         target_path = shape_ids[idx]
         result_save_path = osp.join('./results', f"{osp.basename(target_path).split('.')[0]}.png")
 
-        mesh = o3d.io.read_triangle_mesh(target_path)
-        mesh.compute_vertex_normals()
-        o3d.visualization.draw_geometries([mesh])
-        
-        # mesh = trimesh.load(target_path, file_type='off')
-        # scene = mesh.scene()
-        # png = scene.save_image(resolution=[400, 400], visible=True)
+    mesh_path = '/home/ubuntu/text-3d-retrieval/data/meshes/bathtub_0001.off'
 
-        # with open(result_save_path, 'wb') as f:
-        #     f.write(png)
+    mesh = o3d.io.read_triangle_mesh(mesh_path)
+    renderer = Renderer(config.rendering_width, config.rendering_height)
 
-        img_paths.append(result_save_path)
+    rgb_image = renderer.render(mesh, 'bathtub', config.camera_params, np.eye(4))
+    rgb_image_pil = Image.fromarray(np.asarray(rgb_image))
+    rgb_image_pil.save(result_save_path)
+    img_paths.append(result_save_path)
 
     _, axes = plt.subplots(1, k, figsize=(15, 5))
     for i, img_path in enumerate(img_paths):
@@ -69,6 +59,8 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, k=5):
     plt.title("Retrieved 3D objects")
     plt.tight_layout()
     plt.show()
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process user input')
@@ -109,4 +101,4 @@ if __name__ == '__main__':
         refined_text = [user_input]
 
         text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
-        retrieve_3d(text_feature, embeddings, shape_ids, k=k)
+        retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)

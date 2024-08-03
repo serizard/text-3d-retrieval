@@ -12,7 +12,15 @@ DEFAULT_CONFIG = {
         'embedding_channel': 1280,
         'voxel_size': 0.02
     },
-    'data_dir': './data'
+    'data_dir': './data',
+    'camera_params': {
+        'fx': 800,
+        'fy': 800,
+        'cx': 400,
+        'cy': 400
+    },
+    'rendering_width': 800,
+    'rendering_height': 800,
 }
 
 def make_default_config():

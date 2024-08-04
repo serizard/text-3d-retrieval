@@ -1,5 +1,6 @@
 from utils.refine import TextRefiner
 import argparse
+from utils.renderer import Renderer
 from utils.misc import make_default_config, load_config
 import open_clip
 import pickle
@@ -8,10 +9,7 @@ import numpy as np
 import os
 import os.path as osp
 import shutil
-import matplotlib.pyplot as plt
-from PIL import Image
-import open3d as o3d
-from utils.renderer import Renderer
+
  
 @torch.no_grad()
 def process_input(user_input, open_clip_model, device):
@@ -35,31 +33,13 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, config, k=5):
 
     top_k = indexed_similarity[:k]
 
-    img_paths = []
-    for idx, _ in top_k:
-        target_path = shape_ids[idx]
-        result_save_path = osp.join('./results', f"{osp.basename(target_path).split('.')[0]}.png")
-
-    mesh_path = '/home/ubuntu/text-3d-retrieval/data/meshes/bathtub_0001.off'
-
-    mesh = o3d.io.read_triangle_mesh(mesh_path)
-    renderer = Renderer(config.rendering_width, config.rendering_height)
-
-    rgb_image = renderer.render(mesh, 'bathtub', config.camera_params, np.eye(4))
-    rgb_image_pil = Image.fromarray(np.asarray(rgb_image))
-    rgb_image_pil.save(result_save_path)
-    img_paths.append(result_save_path)
-
-    _, axes = plt.subplots(1, k, figsize=(15, 5))
-    for i, img_path in enumerate(img_paths):
-        axes[i].imshow(plt.imread(img_path))
-        axes[i].axis("off")
-        axes[i].set_title(f"Rank {i+1}")
-    
-    plt.title("Retrieved 3D objects")
-    plt.tight_layout()
-    plt.show()
-
+    # renderer = Renderer(config.rendering_width, config.rendering_height)
+    off_paths = []
+    for i, (idx, _) in enumerate(top_k):
+        src_path = shape_ids[idx]
+        dest_path = osp.join('./results', f'Rank_{i+1}_{osp.basename(src_path)}')
+        shutil.copy(src_path, dest_path)
+        off_paths.append(src_path)
 
 
 if __name__ == '__main__':
@@ -94,11 +74,10 @@ if __name__ == '__main__':
     
     # refiner = TextRefiner(access_token=args.access_token)
 
-    while True:
-        user_input = input("Enter a user description of shape to retrieve: ")
-        k = int(input("Enter the number of shapes to retrieve: "))
-        # refined_text = refiner.refine(user_input)
-        refined_text = [user_input]
+    user_input = input("Enter a user description of shape to retrieve: ")
+    k = int(input("Enter the number of shapes to retrieve: "))
+    # refined_text = refiner.refine(user_input)
+    refined_text = [user_input]
 
-        text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
-        retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)
+    text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
+    retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)

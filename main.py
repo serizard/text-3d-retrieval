@@ -60,8 +60,8 @@ if __name__ == '__main__':
     try:
         open_clip_model = open_clip_model.cuda().eval()
         device = 'cuda'
-    except torch.cuda.OutOfMemoryError:
-        print("CUDA out of memory. Running on CPU.")
+    except:
+        print("Error occurred. Running on CPU.")
         open_clip_model = open_clip_model.cpu().eval()
         device = 'cpu'
 

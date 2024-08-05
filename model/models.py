@@ -103,11 +103,6 @@ class PointPatchTransformer(nn.Module):
         self.sa = PointNetSetAbstraction(npoint=patches, radius=prad, nsample=nsamp, in_channel=in_dim + 3, mlp=[64, 64, sa_dim], group_all=False)
         self.conv = nn.Conv1d(sa_dim + 3, dim, 1)
         self.norm = nn.LayerNorm([dim])
-        # self.lift = nn.Sequential(
-        #     nn.Conv1d(sa_dim + 3, dim, 1),
-        #     nn.Lambda(lambda x: torch.permute(x, [0, 2, 1])),
-        #     nn.LayerNorm([dim])
-        # )
         self.cls_token = nn.Parameter(torch.randn(dim))
         self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, 0.0, rel_pe)
 

@@ -44,7 +44,6 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, config, k=5):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process user input')
-    parser.add_argument('--access_token', type=str, help='Hugging Face access token')
     parser.add_argument('--init_config', type=bool, help='Initialize default configuration')
     args = parser.parse_args()
 
@@ -72,12 +71,12 @@ if __name__ == '__main__':
         shape_ids = np.array(list(shape_embeddings.keys())) # (N,)
         embeddings = np.array(list(shape_embeddings.values())) # (N, embed_dim)
     
-    # refiner = TextRefiner(access_token=args.access_token)
+    refiner = TextRefiner()
 
     user_input = input("Enter a user description of shape to retrieve: ")
     k = int(input("Enter the number of shapes to retrieve: "))
-    # refined_text = refiner.refine(user_input)
-    refined_text = [user_input]
+    refined_text = [refiner.refine(user_input)]
+    print(f'user input: {user_input}, refined_text: {refined_text}')
 
     text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
     retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)

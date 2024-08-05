@@ -1,0 +1,32 @@
+Transform the following words into more refined and rich English expressions:
+
+antique vase -> a delicately crafted, ornately decorated, and historically significant vase
+wooden instrument with strings -> an exquisitely crafted wooden instrument with finely tuned strings
+sparkling river -> a crystal-clear, briskly flowing, and dazzlingly reflective river
+gentle breeze -> a cool, softly caressing, and refreshingly soothing breeze
+old notebook -> a weathered, leather-bound, and filled with handwritten notes notebook
+delicate necklace -> a finely wrought, exquisitely designed, and elegantly shimmering necklace
+rugged mountain -> a jagged, awe-inspiring, and snow-dusted mountain
+shimmering lake -> a crystal-clear, serenely still, and beautifully reflective lake
+small fluffy thing on the grass -> A small fluffy dog is sitting on the grass
+big vehicle with wings -> An airplane is parked on the runway
+someone on two wheels -> A person is riding a bicycle
+green area with flowers -> A garden full of blooming flowers
+tall thing made of glass -> A skyscraper made of glass windows
+sparkly sky at night -> The night sky is filled with stars
+wet place with boats -> A marina with boats docked in the water
+small flying insect -> A butterfly is flying over the flowers
+four-legged animal with stripes -> A zebra is grazing in the field
+bright circle in the sky -> The sun is shining brightly in the sky
+food with cheese and toppings -> A pizza with cheese and various toppings
+people kicking a round object -> People are playing soccer on a field
+red fruit hanging on a tree -> Red apples are hanging on a tree
+colorful arc in the sky after rain -> A rainbow appears in the sky after the rain
+big building with many rooms -> A large hotel with numerous rooms
+man-made water container -> A swimming pool in a backyard
+someone reading with paper -> A person is reading a newspaper
+tall leafy plant -> A tall tree with green leaves
+round object used in games -> A basketball is lying on the court
+area with sand and water -> A beach with sand and ocean waves
+
+# Transform the given word into a more refined expression:

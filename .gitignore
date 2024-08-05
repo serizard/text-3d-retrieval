@@ -4,3 +4,4 @@ data/ModelNet40.zip
 modelnet_embed
 clip_cache
 results
+gpt2_cache

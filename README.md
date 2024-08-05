@@ -10,7 +10,7 @@ This project aims to retrieve shapes from ModelNet40 based on user text input an
 
 | Model                    | Name                 |
 |--------------------------|----------------------|
-| Prompt Engineering Model | [llama-3 8B](https://huggingface.co/meta-llama/Meta-Llama-3-8B)           |
+| Prompt Engineering Model | [GPT-2](https://huggingface.co/openai-community/gpt2)           |
 | Text Encoder             | [OpenCLIP ViT-bigG-14](https://github.com/mlfoundations/open_clip) |
 | Shape Encoder            | [PointBERT](https://github.com/Colin97/OpenShape_code)            |
 
@@ -26,6 +26,11 @@ python prepare_dataset.py --download-dir {directory path to download dataset}
 
 ## Inference
 ```
-python main.py --access-token {your huggingface access token}
+python main.py
 ```
+
+
+
+## Demo
+Demo function is available in ```demo.ipynb```. It receives an user input and retrieve k corresponding shapes.
 

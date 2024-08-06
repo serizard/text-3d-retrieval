@@ -16,6 +16,8 @@ import torch
 import model.models as models
 import pickle
 from huggingface_hub import hf_hub_download
+import open_clip
+from utils.data import process_input
 
 
 
@@ -168,6 +170,28 @@ def preprocess_modelnet10(model, configs, y_up=True):
     print("Preprocessing complete.")
 
 
+def embed_keywords(data_dir):
+    data_names = np.array(list(glob(osp.join(data_dir, '/meshes/*.off'))))
+
+    open_clip_model, _, open_clip_preprocess = open_clip.create_model_and_transforms('ViT-bigG-14', 
+                                                                                    pretrained='laion2b_s39b_b160k', 
+                                                                                    cache_dir='./clip_cache')
+    if torch.cuda.is_available():
+        open_clip_model = open_clip_model.cuda().eval()
+    else:
+        open_clip_model = open_clip_model.cpu().eval()
+
+    text_features = {}
+    data_names = np.unique([name.split('\\')[1].split('_')[0] for name in data_names])
+    
+    for data_name in tqdm(data_names):
+        text_feature = process_input(data_name, open_clip_model, 'cpu')
+        text_features[data_name] = text_feature
+
+    with open('./modelnet_embed/modelnet_name.pkl', 'wb') as f:
+        pickle.dump(text_features, f)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Download and preprocess ModelNet10 dataset')
     parser.add_argument('--download_dir', type=str, default='./data', help='Directory to download ModelNet40 dataset')
@@ -179,4 +203,5 @@ if __name__ == "__main__":
     model.cuda().eval()
     download_modelnet10(args.download_dir)
     preprocess_modelnet10(model, config)
+    embed_keywords(args.download_dir)
     model.cpu()

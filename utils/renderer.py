@@ -11,28 +11,28 @@ class Renderer():
         
 
     def normalize_align_mesh(self, mesh):
-        bbox = mesh.get_axis_aligned_bounding_box()
-        max_extent = np.max(bbox.get_extent())
+        oriented_bbox = mesh.get_oriented_bounding_box()
+        max_extent = max(oriented_bbox.extent)
         scale = 1.0 / max_extent
-        mesh.scale(scale, center=bbox.get_center())
-
-        bbox = mesh.get_axis_aligned_bounding_box()
-        center = bbox.get_center()
+        mesh.scale(scale = scale, center = oriented_bbox.get_center())
+        center = oriented_bbox.get_center()
         mesh.translate(-center)
         return mesh
 
 
+
     def render(self, obj_file):
         self.visualizer.clear_geometries()
-        
+    
         normalized_mesh = self.normalize_align_mesh(obj_file)
         self.visualizer.add_geometry(normalized_mesh)
         
-        bbox = normalized_mesh.get_axis_aligned_bounding_box()
+        bbox = normalized_mesh.get_oriented_bounding_box()
         center = bbox.get_center()
-        extent = bbox.get_extent()
+        extent = bbox.extent
+        print(center, extent)
         
-        fx = fy = max(extent) * 2
+        fx = fy = 2
         cx = self.img_w / 2
         cy = self.img_h / 2
         intrinsic = o3d.camera.PinholeCameraIntrinsic(self.img_w, self.img_h, fx, fy, cx, cy)
@@ -48,7 +48,7 @@ class Renderer():
         new_intrinsics.extrinsic = extrinsic
         
         view_control = self.visualizer.get_view_control()
-        view_control.convert_from_pinhole_camera_parameters(new_intrinsics)
+        view_control.convert_from_pinhole_camera_parameters(new_intrinsics, True)
         
         self.visualizer.poll_events()
         self.visualizer.update_renderer()

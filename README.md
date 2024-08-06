@@ -40,5 +40,5 @@ python main.py
 
 
 ## Demo
-Demo function is available in ```demo.ipynb```. It receives an user input and retrieve k corresponding shapes.
+Demo is available in ```demo.ipynb```. It receives an user input and retrieve k corresponding shapes.
 

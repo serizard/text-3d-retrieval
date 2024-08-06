@@ -13,15 +13,11 @@ DEFAULT_CONFIG = {
         'voxel_size': 0.02
     },
     'data_dir': './data',
-    'camera_params': {
-        'fx': 800,
-        'fy': 800,
-        'cx': 400,
-        'cy': 400
-    },
-    'rendering_width': 800,
-    'rendering_height': 800,
+    "rendering_width": 800,
+    "rendering_height": 800
 }
+
+
 
 def make_default_config():
     config_path = './utils/configs/config.json'
@@ -57,3 +53,4 @@ def load_config():
 def dump_config(path, config):
     with open(path, 'w') as fp:
         json.dump(config, fp, indent=4)
+

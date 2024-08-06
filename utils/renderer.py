@@ -1,40 +1,61 @@
 import open3d as o3d
 import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-
-''' Incomplete code'''
 
 class Renderer():
     def __init__(self, img_h, img_w):
-        self.renderer = o3d.visualization.rendering.OffscreenRenderer(img_w, img_h)
-        
-        self.renderer.scene.set_background([1,1,1,1])
-        self.renderer.scene.set_lighting(o3d.visualization.rendering.Open3DScene.LightingProfile.SOFT_SHADOWS, (0, 0, 0))
-
         self.img_h = img_h
         self.img_w = img_w
-
-    def render(self, obj_file, obj_name, cam_param, T_gk):
-        material = o3d.visualization.rendering.MaterialRecord() 
-
-        self.renderer.scene.add_geometry(name=obj_name, geometry=obj_file, material=material)
-        intrinsic = o3d.camera.PinholeCameraIntrinsic(self.img_w, self.img_h, cam_param.fx, cam_param.fy, cam_param.cx, cam_param.cy)
-
-        new_cam_param = o3d.camera.PinholeCameraParameters()
-        new_cam_param.intrinsic = intrinsic
-        new_cam_param.extrinsic = np.linalg.inv(T_gk)
+        self.visualizer = o3d.visualization.Visualizer()
+        self.visualizer.create_window(width=img_w, height=img_h, visible=False)
+        self.visualizer.get_render_option().background_color = np.array([1, 1, 1])
         
-        self.renderer.setup_camera(new_cam_param.intrinsic, new_cam_param.extrinsic)
 
-        bbox = obj_file.get_axis_aligned_bounding_box()
+    def normalize_align_mesh(self, mesh):
+        bbox = mesh.get_axis_aligned_bounding_box()
+        max_extent = np.max(bbox.get_extent())
+        scale = 1.0 / max_extent
+        mesh.scale(scale, center=bbox.get_center())
+
+        bbox = mesh.get_axis_aligned_bounding_box()
         center = bbox.get_center()
-        self.renderer.scene.camera.look_at(center, center + np.array([0, 0, -1]), np.array([0, -1, 0]))
+        mesh.translate(-center)
+        return mesh
 
+
+    def render(self, obj_file):
+        self.visualizer.clear_geometries()
         
-        rgb = self.renderer.render_to_image()
-
-        return rgb
-
+        normalized_mesh = self.normalize_align_mesh(obj_file)
+        self.visualizer.add_geometry(normalized_mesh)
+        
+        bbox = normalized_mesh.get_axis_aligned_bounding_box()
+        center = bbox.get_center()
+        extent = bbox.get_extent()
+        
+        fx = fy = max(extent) * 2
+        cx = self.img_w / 2
+        cy = self.img_h / 2
+        intrinsic = o3d.camera.PinholeCameraIntrinsic(self.img_w, self.img_h, fx, fy, cx, cy)
+        
+        camera_distance = extent[0] * 2
+        camera_position = center + np.array([0, 0, camera_distance])
+        extrinsic = np.eye(4)
+        extrinsic[:3, 3] = camera_position
+        extrinsic = np.linalg.inv(extrinsic)
+        
+        new_intrinsics = o3d.camera.PinholeCameraParameters()
+        new_intrinsics.intrinsic = intrinsic
+        new_intrinsics.extrinsic = extrinsic
+        
+        view_control = self.visualizer.get_view_control()
+        view_control.convert_from_pinhole_camera_parameters(new_intrinsics)
+        
+        self.visualizer.poll_events()
+        self.visualizer.update_renderer()
+        
+        image = self.visualizer.capture_screen_float_buffer(do_render=True)
+        
+        return np.asarray(image)
+    
     def close(self):
-        self.renderer.scene.clear_geometry()
+        self.visualizer.destroy_window()

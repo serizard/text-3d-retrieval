@@ -9,6 +9,8 @@ import numpy as np
 import os
 import os.path as osp
 import shutil
+import matplotlib.pyplot as plt
+import open3d as o3d
 
  
 @torch.no_grad()
@@ -33,13 +35,14 @@ def retrieve_3d(text_feature, shape_embeddings, shape_ids, config, k=5):
 
     top_k = indexed_similarity[:k]
 
-    # renderer = Renderer(config.rendering_width, config.rendering_height)
     off_paths = []
     for i, (idx, _) in enumerate(top_k):
         src_path = shape_ids[idx]
         dest_path = osp.join('./results', f'Rank_{i+1}_{osp.basename(src_path)}')
         shutil.copy(src_path, dest_path)
         off_paths.append(src_path)
+    
+    return off_paths
 
 
 if __name__ == '__main__':
@@ -72,11 +75,27 @@ if __name__ == '__main__':
         embeddings = np.array(list(shape_embeddings.values())) # (N, embed_dim)
     
     refiner = TextRefiner()
+    renderer = Renderer(config.rendering_width, config.rendering_height)
 
     user_input = input("Enter a user description of shape to retrieve: ")
     k = int(input("Enter the number of shapes to retrieve: "))
     refined_text = [refiner.refine(user_input)]
-    print(f'user input: {user_input}, refined_text: {refined_text}')
+    print(f'user input: {user_input}, refined_text: {refined_text[0]}')
 
     text_feature = process_input(refined_text, open_clip_model, device)[0] # (1, embed_dim,)
-    retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)
+    off_paths = retrieve_3d(text_feature, embeddings, shape_ids, config, k=k)
+
+    _, axs = plt.subplots(1, k, figsize=(k*5, 5))
+
+    for i, off_path in enumerate(off_paths):
+        obj_file = o3d.io.read_triangle_mesh(off_path)
+        rgb = renderer.render(obj_file)
+        axs[i].imshow(rgb)
+        axs[i].axis('off')
+        axs[i].set_title(f'Rank {i+1}')
+    
+    plt.savefig('./results/visualization.png')
+    renderer.close()
+        
+
+
